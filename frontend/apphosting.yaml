@@ -1,0 +1,29 @@
+# Runtime configuration for Cloud Run
+runConfig:
+  cpu: 1
+  memoryMiB: 1024
+  concurrency: 80
+  minInstances: 0
+  maxInstances: 10
+
+# Environment variables and secrets
+env:
+  - variable: USE_MOCKS
+    value: "false"
+  - variable: GCP_PROJECT_ID
+    value: "gdg-hacks-493707"
+  - variable: VERTEX_AI_LOCATION
+    value: "us-central1"
+  - variable: FIRESTORE_COLLECTION
+    value: "items"
+  - variable: GCS_UPLOAD_BUCKET
+    value: "snappie-uploads"
+  - variable: GCS_ASSETS_BUCKET
+    value: "snappie-assets"
+  - variable: GEMINI_MODEL
+    value: "gemini-1.5-flash"
+  
+  # Reference to Google Cloud Secret Manager
+  # You will create this secret via 'firebase apphosting:secrets:set SNAPPY_GEMINI_API_KEY'
+  - variable: GEMINI_API_KEY
+    secret: SNAPPY_GEMINI_API_KEY
