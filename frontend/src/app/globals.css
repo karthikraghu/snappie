@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-heading: var(--font-archivo-black), sans-serif;
+  
+  --color-retro-cyan: #00e5ff;
+  --color-retro-pink: #ff00ff;
+  --color-retro-yellow: #ffeb3b;
+  --color-retro-green: #00ff00;
+  
+  --border-width-retro: 4px;
+}
+
+@layer base {
+  * {
+    @apply border-black;
+  }
+  
+  body {
+    @apply bg-yellow-50 overflow-x-hidden; 
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading uppercase tracking-wide;
+  }
+}
+
+@layer utilities {
+  .retro-shadow {
+    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+  }
+  
+  .retro-shadow-sm {
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  }
+
+  .retro-shadow-lg {
+    box-shadow: 10px 10px 0px 0px rgba(0, 0, 0, 1);
+  }
+
+  /* When button is clicked, it pushes down and the shadow goes away */
+  .retro-btn-active {
+    @apply active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-transform duration-75;
+  }
+  
+  /* Rarity Colors */
+  .rarity-common { @apply bg-gray-300; }
+  .rarity-uncommon { @apply bg-retro-green; }
+  .rarity-rare { @apply bg-retro-cyan; }
+  .rarity-epic { @apply bg-retro-pink; }
+  .rarity-legendary { @apply bg-retro-yellow; }
+}
