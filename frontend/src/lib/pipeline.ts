@@ -50,22 +50,30 @@ export async function runItemProcessingPipeline(itemId: string, gcsUri: string, 
       rpgItem.imageUrl = gcsUri; // Keep reference to original photo
       rpgItem.style = style;
 
-      // C. Generate Styled Art Asset (Imagen 3)
-      console.log(`[Pipeline] Generating ${style} art for ${itemId}...`);
-      try {
-        const artBuffer = await GCPImagen.generateCardArt(forgedData.artPrompt);
-        generatedArtUrl = await GCPStorage.uploadImage(artBuffer.toString('base64'), `${itemId}/styled`);
-        rpgItem.generatedArtUrl = generatedArtUrl;
-      } catch (imgError) {
-        console.error("[Pipeline] Imagen failed, falling back to original photo:", imgError);
-        rpgItem.generatedArtUrl = gcsUri;
-      }
+      // C. PARALLEL GENERATION: Art (Imagen) + Narration (TTS)
+      console.log(`[Pipeline] Launching parallel generation for ${itemId}...`);
+      
+      const [artResult, audioBuffer] = await Promise.all([
+        // Task 1: Generate Art
+        (async () => {
+          try {
+            const buffer = await GCPImagen.generateCardArt(forgedData.artPrompt);
+            const url = await GCPStorage.uploadImage(buffer.toString('base64'), `${itemId}/styled`);
+            return url;
+          } catch (e) {
+            console.error("[Pipeline] Art generation failed:", e);
+            return gcsUri; // Fallback to photo
+          }
+        })(),
+        // Task 2: Generate Narration
+        GCPTTS.generateNarration(rpgItem.lore)
+      ]);
 
-      // D. TTS audio narration of the lore
-      const audioBuffer = await GCPTTS.generateNarration(rpgItem.lore);
+      generatedArtUrl = artResult;
+      rpgItem.generatedArtUrl = generatedArtUrl;
       audioUrl = await GCPStorage.uploadAudio(audioBuffer, itemId);
       
-      // E. Final Database Update
+      // D. Final Database Update
       const finalDoc: Partial<ItemDocument> = {
         status: "completed",
         item: rpgItem,

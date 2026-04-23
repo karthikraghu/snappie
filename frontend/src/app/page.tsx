@@ -10,6 +10,33 @@ import { Layers, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 
+const FORGE_LOGS = [
+  "Analyzing molecular density...",
+  "Decoding mana signature...",
+  "Consulting the Great Forge...",
+  "Infusing with legendary essence...",
+  "Finalizing artifact metadata...",
+  "Calculating rarity odds...",
+  "Generating multi-modal assets..."
+];
+
+function ForgeStatusTicker() {
+  const [logIndex, setLogIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLogIndex((prev) => (prev + 1) % FORGE_LOGS.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <p className="font-sans font-bold text-xl text-gray-700 h-8 text-center animate-pulse uppercase tracking-tighter">
+      {FORGE_LOGS[logIndex]}
+    </p>
+  );
+}
+
 export default function SnapPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -21,16 +48,49 @@ export default function SnapPage() {
   // Track specific item processing state for polling
   const [processingId, setProcessingId] = useState<string | null>(null);
 
+  // --- HELPER: Image Compression ---
+  const compressImage = (base64Str: string, maxWidth = 1024, maxHeight = 1024): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% quality JPEG is plenty
+      };
+    });
+  };
+
   const handleSnap = async (imgUrl: string, style: string) => {
-    setCapturedImage(imgUrl);
     setPhase("processing");
     
-    if (!user) return; // Normally Auth handles this
+    // 1. Optimize: Compress before upload
+    const compressed = await compressImage(imgUrl);
+    setCapturedImage(compressed);
+    
+    if (!user) return; 
     
     try {
-      // 1. Post to Upload Mock API
       const fd = new FormData();
-      fd.append("image", imgUrl); // Passing data URL for mock simplicity
+      fd.append("image", compressed); 
       fd.append("userId", user.id);
       fd.append("style", style);
 
@@ -46,12 +106,12 @@ export default function SnapPage() {
 
     } catch (e) {
       console.error(e);
-      setPhase("camera"); // Reset on error
+      setPhase("camera");
       alert("Failed to initiate forge.");
     }
   };
 
-  // 2. Client Side Polling
+  // 2. Client Side Polling (Optimized to 1s)
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -65,7 +125,7 @@ export default function SnapPage() {
             if (itemDoc.status === "completed") {
               setMockItem(itemDoc);
               setPhase("reveal");
-              setProcessingId(null); // Stop polling
+              setProcessingId(null);
               clearInterval(intervalId);
             } else if (itemDoc.status === "failed") {
               setPhase("camera");
@@ -76,7 +136,7 @@ export default function SnapPage() {
         } catch (err) {
           console.error("Polling error", err);
         }
-      }, 2000); // Poll every 2 seconds
+      }, 1000); // Poll every 1 second now
     }
 
     return () => clearInterval(intervalId);
@@ -105,12 +165,35 @@ export default function SnapPage() {
         )}
 
         {phase === "processing" && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 mb-6 border-4 border-black bg-retro-pink animate-spin-slow retro-shadow-sm flex items-center justify-center">
-              <Layers size={48} />
+          <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+            {/* Background Particles */}
+            <div className="absolute inset-0 pointer-events-none opacity-40">
+              {[...Array(6)].map((_, i) => (
+                <div 
+                  key={i}
+                  className="absolute w-2 h-2 bg-retro-pink animate-float"
+                  style={{ 
+                    left: `${Math.random() * 100}%`, 
+                    animationDelay: `${i * 0.5}s`,
+                    animationDuration: `${3 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
             </div>
-            <h2 className="text-3xl font-heading mb-2">FORGING...</h2>
-            <p className="font-sans font-bold text-lg animate-pulse">Contacting Google Cloud...</p>
+
+            {/* Scanning Area */}
+            <div className="relative w-64 h-64 border-8 border-black bg-white retro-shadow-lg overflow-hidden mb-8">
+              {capturedImage && (
+                <img src={capturedImage} alt="Scanning" className="w-full h-full object-cover" />
+              )}
+              {/* Laser Scanline */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-retro-green/50 to-transparent h-12 w-full animate-scan" style={{ borderTop: '4px solid #00ff00' }} />
+            </div>
+
+            <h2 className="text-4xl font-heading mb-4 text-center">FORGING...</h2>
+            
+            {/* Status Ticker */}
+            <ForgeStatusTicker />
           </div>
         )}
 
