@@ -1,82 +1,20 @@
-# 📸 Snappie: The Legendary Loot Forge
+# Snappie
 
-**Snappie** is an AI-powered RPG item generator that transforms real-world objects into unique, digital legendary loot. By combining computer vision with generative AI, Snappie turns your morning coffee, your car, or even your pet into a fully-statted RPG artifact with custom artwork and immersive lore.
+This project was built to explore and integrate Google Cloud Platform services: Firestore, Cloud Storage, Vertex AI, and Google Vision.
 
----
+## How it works
 
-## 🚀 Key Features
+Snappie transforms physical objects into digital RPG items through a multi-stage cloud pipeline. 
 
-- **Snap to Forge**: Capture any real-world object using your camera.
-- **AI Lore Generation**: Gemini 1.5 analyzes the context to craft unique item names, backstories, and RPG stats.
-- **Visual Alchemy**: Imagen 3 generates high-quality, stylized icons based on your photo.
-- **Immersive Narrator**: Google Cloud TTS brings your item's description to life with professional-grade voice synthesis.
-- **Lootsaver**: Securely store your forged items in a personal collection powered by Firebase.
+The process begins when a user captures an image. Google Vision identifies the object and its characteristics. Vertex AI (Gemini 1.5) then processes this visual metadata to generate a unique name, rarity level, and thematic lore. Simultaneously, Imagen 3 generates stylized artwork, and Cloud Text-to-Speech creates a voiceover for the item description. All metadata and assets are persisted in Firestore and Cloud Storage buckets for instant retrieval.
 
----
+## Architecture
 
-## 🏗️ High-Level Architecture
+![Architecture Diagram](./image.png)
 
-The "Snap-to-Loot" pipeline uses a multi-stage AI orchestration pattern:
+## Running the Application
 
-1.  **Vision Phase**: Cloud Vision analyzes the raw image for labels and dominant features.
-2.  **Cognition Phase**: Gemini 1.5 processes vision data to generate structured RPG metadata (Stats, Rarity, Lore).
-3.  **Synthesis Phase**: Imagen 3 creates a stylized square icon representing the item.
-4.  **Audio Phase**: Cloud TTS generates a voiceover for the item's flavor text.
-5.  **Persistence**: All assets (images in Storage) and metadata (Firestore) are saved to the cloud.
-
-### Architecture Diagram
-
-![Snappie Architecture Diagram](./image.png)
-
-
----
-
-## 🛠️ Technology Stack
-
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, TypeScript)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Auth & Database**: [Firebase](https://firebase.google.com/) (Auth, Firestore, Hosting)
-- **AI/ML**: [Google Cloud Vertex AI](https://cloud.google.com/vertex-ai)
-  - Vision API
-  - Gemini 1.5 Pro / Flash
-  - Imagen 3
-  - Text-to-Speech API
-- **Deployment**: [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)
-
----
-
-## 🚦 Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- A Google Cloud Project with Vertex AI enabled.
-- A Firebase Project.
-
-### Installation
-
-1.  **Clone the repo**:
-    ```bash
-    git clone https://github.com/your-username/snappie.git
-    cd snappie
-    ```
-
-2.  **Setup Environment Variables**:
-    Create a `frontend/.env.local` file with your Firebase and GCP credentials. See `.env.local.example` for reference.
-
-3.  **Install dependencies**:
-    ```bash
-    cd frontend
-    npm install
-    ```
-
-4.  **Run locally**:
-    ```bash
-    npm run dev
-    ```
-
----
-
-## 📜 License
-
-MIT License - Copyright (c) 2024 Snappie Team
+1. Clone the repository.
+2. Create a .env.local file in the frontend directory with your GCP and Firebase credentials.
+3. Install dependencies using npm install.
+4. Start the development server with npm run dev.
